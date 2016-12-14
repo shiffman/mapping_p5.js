@@ -2,22 +2,25 @@ var mapimg;
 var bounds;
 var rbounds;
 
-var parisx = 2.3522;
-var parisy = 48.8566;
+var x1 = 2.3522;
+var y1 = 48.8566;
 
-var lbgx = 8.6821;
-var lbgy = 50.1109;
+var x2 = 8.6821;
+var y2 = 50.1109;
+var zoom = 5;
+
+var projection;
 
 function setup() {
   angleMode(RADIANS);
+  projection = new SphericalMercator();
   var size = [800, 600];
   createCanvas(size[0], size[1]);
   //var center = [2.3522, 48.8566];
-  var center = [parisx, parisy];
-  var zoom = 5;
+  var center = [x1, y1];
+
   bounds = geoViewport.bounds(center, zoom, size);
   // -west, -south, +east, +north order.
-  console.log((bounds[1] + bounds[3])/2);
 
   console.log(bounds);
   rbounds = [];
@@ -35,9 +38,14 @@ function setup() {
 
 }
 
-function mercatorY(lat) {
+function mercX(lon) {
+  lon = radians(lon);
+  return (256 / PI) * pow(2, zoom) * (lon + PI);
+}
+
+function mercY(lat) {
   lat = radians(lat);
-  return log(tan((PI / 4.0) + (lat / 2.0)));
+  return (256 / PI) * pow(2, zoom) * (PI - log(tan((PI / 4.0) + (lat / 2.0))));
 }
 
 
@@ -47,30 +55,14 @@ function ready() {
   background(0);
   image(mapimg, 0, 0);
 
-  var mx = radians(lbgx);
-  var my = radians(lbgy);
 
-  console.log(bounds);
-  console.log(mx, my);
-  var x = map(mx, rbounds[0], rbounds[2], 0, width);
-  var y = map(my, rbounds[3], rbounds[1], 0, height);
-  console.log(x, y);
-
-  fill(0, 255, 255);
-  ellipse(x, y, 16, 16);
-
-  var mx = radians(parisx);
-  var my = radians(parisy);
-
-  console.log(mx, my);
-  var x = map(mx, rbounds[0], rbounds[2], 0, width);
-  var y = map(my, rbounds[3], rbounds[1], 0, height);
-  console.log(x, y);
+  var cx = mercX(x1);
+  var cy = mercY(y1);
+  var mx = mercX(x2);
+  var my = mercY(y2);
 
   fill(0, 255, 0);
-  ellipse(x, y, 16, 16);
-
-
-  fill(255, 0, 0);
-  //ellipse(width / 2, height / 2, 16, 16);
+  translate(width / 2, height / 2);
+  console.log(mx - cx, my - cy);
+  ellipse(mx - cx, my - cy, 16, 16);
 }
